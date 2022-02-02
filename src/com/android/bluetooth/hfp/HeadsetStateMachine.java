@@ -33,7 +33,6 @@ import android.media.AudioManager;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
@@ -91,9 +90,6 @@ public class HeadsetStateMachine extends StateMachine {
     private static final String HEADSET_G_SCO_SAMPLERATE = "g_sco_samplerate";
     private static final String HEADSET_G_WB_SAMPLERATE = "16000";
     private static final String HEADSET_G_NB_SAMPLERATE = "8000";
-
-    private static final String SAMSUNG_SAMPLERATE_SUPPORT_PROPERTY =
-            "bluetooth.samsung_samplerate.supported";
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -1556,7 +1552,7 @@ public class HeadsetStateMachine extends StateMachine {
                 HEADSET_WBS + "=" + mAudioParams.getOrDefault(HEADSET_WBS,
                         HEADSET_AUDIO_FEATURE_OFF)
         });
-        if (SystemProperties.getBoolean(SAMSUNG_SAMPLERATE_SUPPORT_PROPERTY, false)) {
+        if (mAdapterService.shouldReportScoSampleRate()) {
             keyValuePairs += ";" + HEADSET_G_SCO_SAMPLERATE + "=" + mAudioParams.getOrDefault(
                     HEADSET_G_SCO_SAMPLERATE, HEADSET_G_NB_SAMPLERATE);
         }
@@ -1701,16 +1697,14 @@ public class HeadsetStateMachine extends StateMachine {
         switch (wbsConfig) {
             case HeadsetHalConstants.BTHF_WBS_YES:
                 mAudioParams.put(HEADSET_WBS, HEADSET_AUDIO_FEATURE_ON);
-                
-                if (SystemProperties.getBoolean(SAMSUNG_SAMPLERATE_SUPPORT_PROPERTY, false)) {
+                if (mAdapterService.shouldReportScoSampleRate()) {
                     mAudioParams.put(HEADSET_G_SCO_SAMPLERATE, HEADSET_G_WB_SAMPLERATE);
                 }
                 break;
             case HeadsetHalConstants.BTHF_WBS_NO:
             case HeadsetHalConstants.BTHF_WBS_NONE:
                 mAudioParams.put(HEADSET_WBS, HEADSET_AUDIO_FEATURE_OFF);
-                
-                if (SystemProperties.getBoolean(SAMSUNG_SAMPLERATE_SUPPORT_PROPERTY, false)) {
+                if (mAdapterService.shouldReportScoSampleRate()) {
                     mAudioParams.put(HEADSET_G_SCO_SAMPLERATE, HEADSET_G_NB_SAMPLERATE);
                 }
                 break;
